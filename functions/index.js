@@ -60,11 +60,19 @@ app.post("/get-user-info", async (req, res) => {
 });
 
 app.post("/new-order", async (req, res) => {
-    const { currency, amount, price, side } = req.body;
+    const { currency, amount, price, side, type, email } = req.body;
 
-    const order = side === "buy" ? currencies.createBuyOrder(currency, amount, price) : currencies.createSellOrder(currency, amount, price);
+    const order = side === "buy" ? await currencies.createBuyOrder(currency, amount, price, type, email.email) : await currencies.createSellOrder(currency, amount, price, type, email.email);
 
-    res.send(JSON.stringify(order));
+    res.send(JSON.stringify({order}));
+});
+
+app.post("/get-orders", async (req, res) => {
+    const {email} = req.body;
+
+    const result = await currencies.getOrders(email);
+
+    return res.send(JSON.stringify(result));
 });
 
 exports.app = functions.https.onRequest(app);

@@ -4,6 +4,7 @@ const axios = require("axios");
 admin.initializeApp(functions.config().firebase);
 
 function createNewUser(userInfo) {
+    userInfo["orders"] = [];
     const db = admin.database();
     const userReference = db.ref("users");
     const splicedEmail = userInfo.email.split("@");

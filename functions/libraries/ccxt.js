@@ -1,4 +1,6 @@
-const ccxt = require("ccxt");
+const admin = require("firebase-admin");
+const axios = require("axios");
+
 
 /*
 
@@ -37,7 +39,7 @@ function createId() {
     return result;
 }
 
-function createBuyOrder(symbol, amount, price, type) {
+async function createBuyOrder(symbol, amount, price, type, email) {
 
 
     const orderId = createId();
@@ -52,19 +54,53 @@ function createBuyOrder(symbol, amount, price, type) {
         side: "buy",
     };
 
+    const db = admin.database();
+    const userReference = db.ref("users");
+    const splicedEmail = email.split("@");
+    const refLink = await userReference.child(splicedEmail[0]).child("/orders").push(myOrder);
+
+
+    return myOrder;
+
+}
+
+async function createSellOrder(symbol, amount, price, type, email) {
+    const orderId = createId();
+
+    const myOrder = {
+        id: orderId,
+        timestamp: Date.now(),
+        symbol,
+        amount,
+        price,
+        type,
+        side: "sell",
+    };
+
+    const db = admin.database();
+    const userReference = db.ref("users");
+    const splicedEmail = email.split("@");
+    const refLink = await userReference.child(splicedEmail[0]).child("/orders").push(myOrder);
+
 
     return myOrder;
 }
 
-function createSellOrder(symbol, amount, price) {
-    const exchange = new ccxt.binance();
+async function getOrders(email) {
+    const db = admin.database();
+    const splicedEmail = email.split("@");
+    const userRef = db.ref("users").child(splicedEmail[0]).child("/orders");
 
-    //const order = await exchange.createOrder(symbol, "market", "sell", amount, price);
+    const wrappedUrl = userRef + ".json?print=pretty";
 
-    return order;
+    const result = await axios.get(wrappedUrl);
+    const resultJson = await result.data;
+
+    return resultJson
 }
 
 module.exports = {
     createBuyOrder,
     createSellOrder,
+    getOrders,
 };
